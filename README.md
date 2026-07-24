@@ -18,6 +18,7 @@
 - Defold 프로젝트가 dependency로 가져다 쓸 수 있는 `defold_helper/` Lua runtime helper
 - Defold HTML5 bundle을 자체 포함 단일 HTML로 변환하는 `tools/single_html` packer
 - 빌드된 Debug/Development 제품을 AI가 직접 조작·관찰하기 위한 runtime QA bridge 설계 지침
+- normalized color·WCAG contrast·table transform·resource path용 범용 Lua util
 - CSV 기반 localization table helper 및 기본 20개 locale 코드/selector 이름 variation 목록
 - 재사용 가능한 privacy modal 상태/클릭 처리 helper
 - 재사용 가능한 bounded scroll 상태/드래그/휠/관성/탄성 layout helper
@@ -78,6 +79,9 @@ defold_helper/
   localization.lua
   privacy_modal.lua
   scroll.lua
+  color_utils.lua
+  table_utils.lua
+  string_utils.lua
 skills/
   defold-build-bundle/SKILL.md
   defold-ui-input/SKILL.md
@@ -116,6 +120,9 @@ local local_leaderboard = require("defold_helper.local_leaderboard")
 local localization = require("defold_helper.localization")
 local privacy_modal = require("defold_helper.privacy_modal")
 local scroll = require("defold_helper.scroll")
+local color_utils = require("defold_helper.color_utils")
+local table_utils = require("defold_helper.table_utils")
+local string_utils = require("defold_helper.string_utils")
 ```
 
 자세한 adapter 예시는 [`docs/runtime-library.md`](docs/runtime-library.md)에 있습니다.

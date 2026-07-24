@@ -9,6 +9,9 @@ local runtime_library_metadata_test = require("tests.runtime_library_metadata_te
 local localization_test = require("tests.localization_test")
 local privacy_modal_test = require("tests.privacy_modal_test")
 local scroll_test = require("tests.scroll_test")
+local color_utils_test = require("tests.color_utils_test")
+local table_utils_test = require("tests.table_utils_test")
+local string_utils_test = require("tests.string_utils_test")
 
 score_records_test()
 score_ui_test()
@@ -19,5 +22,8 @@ runtime_library_metadata_test()
 localization_test()
 privacy_modal_test()
 scroll_test()
+color_utils_test()
+table_utils_test()
+string_utils_test()
 
 print("OK")

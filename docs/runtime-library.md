@@ -10,6 +10,9 @@
 - `defold_helper.localization`
 - `defold_helper.privacy_modal`
 - `defold_helper.scroll`
+- `defold_helper.color_utils`
+- `defold_helper.table_utils`
+- `defold_helper.string_utils`
 
 ## Defold Adoption
 
@@ -35,6 +38,9 @@ local score_ui = require("defold_helper.score_ui")
 local local_leaderboard = require("defold_helper.local_leaderboard")
 local privacy_modal = require("defold_helper.privacy_modal")
 local scroll = require("defold_helper.scroll")
+local color_utils = require("defold_helper.color_utils")
+local table_utils = require("defold_helper.table_utils")
+local string_utils = require("defold_helper.string_utils")
 ```
 
 Use a release tag or pinned commit archive for production projects. A branch archive is useful for quick smoke checks but can change underneath a consumer.
@@ -107,6 +113,48 @@ print(bundle:language_display_name("ko"))
 ```
 
 The helper intentionally does not own a global language setting for the whole game. Keep save data, settings UI, and language switching policy in the consuming project.
+
+## General Utility Modules
+
+`defold_helper.color_utils` uses normalized `0..1` RGBA tables, matching Defold's native color vector range. It parses and formats common hex colors, interpolates and adjusts HSL colors, calculates [WCAG 2.2 sRGB contrast](https://www.w3.org/TR/WCAG22/#dfn-relative-luminance), and can create a `vmath.vector4` at the engine boundary.
+
+```lua
+local color_utils = require("defold_helper.color_utils")
+
+local background = color_utils.from_hex("#101820")
+local text_color, contrast = color_utils.best_contrast(background)
+
+gui.set_color(self.panel, color_utils.to_vector4(background))
+gui.set_color(self.label, color_utils.to_vector4(text_color))
+
+if not color_utils.passes_contrast(contrast, "AA", false) then
+  print("normal text contrast is too low")
+end
+```
+
+`defold_helper.table_utils` keeps generic table operations non-mutating. `merge` returns a new shallow table with later sources winning, `map_values` preserves keys, and `sorted_keys`/`sorted_pairs` provide deterministic iteration for UI rows, debug output, and serialization adapters.
+
+```lua
+local table_utils = require("defold_helper.table_utils")
+
+local options = table_utils.merge(default_options, saved_options, session_options)
+for key, value in table_utils.sorted_pairs(options) do
+  print(key, value)
+end
+```
+
+`defold_helper.string_utils` contains small string and path-boundary operations without taking ownership of filesystem or URL policy.
+
+```lua
+local string_utils = require("defold_helper.string_utils")
+
+local atlas_path = string_utils.join_path("/assets", "ui", "buttons.atlas")
+if string_utils.ends_with(atlas_path, ".atlas") then
+  print(atlas_path)
+end
+```
+
+These modules intentionally do not create GUI nodes, select pivots, set blend modes, or choose font scale policy. Keep those visual decisions in project-local GUI adapters.
 
 ## Privacy Modal Adapter
 
