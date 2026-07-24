@@ -6,6 +6,8 @@
 
 `defold-codex-toolkit`은 Defold 프로젝트 작업에서 반복되는 워크플로우를 Codex가 더 일관되게 지원할 수 있도록 정리한 plugin 패키지입니다. 이 저장소는 Codex에서 로컬로 로드되는 plugin 형식이며, 공개 GitHub 업로드 자체가 OpenAI 공식 공개 marketplace 자동 등록을 뜻하지 않습니다.
 
+현재 릴리즈 변경사항은 [`CHANGELOG.md`](CHANGELOG.md)에서 확인할 수 있습니다.
+
 ## 제공 기능
 
 - Defold 빌드 및 번들 작업 가이드
@@ -96,6 +98,7 @@ tools/
     package.json
     test/pack.test.mjs
 examples/marketplace.json.example
+CHANGELOG.md
 README.md
 LICENSE
 ```

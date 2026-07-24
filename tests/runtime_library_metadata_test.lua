@@ -15,6 +15,11 @@ local function run()
   assert.contains(game_project, "[library]", "helper repo should declare Defold library metadata")
   assert.contains(game_project, "include_dirs = defold_helper", "library metadata should expose only the defold_helper namespace")
 
+  local plugin_manifest = read_file(".codex-plugin/plugin.json")
+  local project_version = string.match(game_project, "version%s*=%s*([%w%.%-]+)")
+  local plugin_version = string.match(plugin_manifest, "\"version\"%s*:%s*\"([^\"]+)\"")
+  assert.equal(project_version, plugin_version, "Defold library and Codex plugin versions should match")
+
   local docs = read_file("docs/runtime-library.md")
   assert.contains(docs, "require(\"defold_helper.score_records\")", "adoption docs should show score_records require path")
   assert.contains(docs, "require(\"defold_helper.localization\")", "adoption docs should show localization require path")

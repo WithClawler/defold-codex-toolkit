@@ -1,6 +1,6 @@
 {
   "name": "defold-codex-toolkit",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "Defold-specific Codex workflow toolkit and reusable runtime library for build, single-file HTML5 packaging, UI/input, UI text/fonts, debugging, project conventions, engine upgrades, portable Lua score/session helpers, local leaderboards, CSV localization tables, color and table utilities, and privacy modal routing.",
   "author": {
     "name": "clawler"
