@@ -189,6 +189,17 @@ Text renderer는 `set_locale/prepare/set/fit`을 제공합니다. fallback font�
 문자권별 text layout engine을 설정하고 실제 카피 inventory에 맞는 폰트·라이선스를
 번들해야 합니다. 다른 게임의 subset이 새 문구의 글리프까지 포함한다고 가정하지 않습니다.
 
+일부 서체를 오프라인 bitmap으로 bake해 runtime 서체와 함께 사용하는 경우,
+`DATA.fonts[font_id].runtime = false`로 지정합니다. 해당 서체는 `prepare()`와 `set()`에서
+runtime prewarm과 fallback 연결을 건너뛰고 즉시 표시하며, 불필요하게 기존 텍스트를
+비우지 않습니다. `runtime`을 생략하거나 `true`로 지정한 서체는 기존 비동기 준비·token
+보호 동작을 유지합니다. 이 필드는 helper의 준비 방식만 정하므로 소비자는 실제로
+오프라인 glyph bank를 포함한 `.fontc`를 제공해야 합니다. 예를 들어 TTF를 빌드 시점에
+rasterize하려면 `.font`에 `output_format: TYPE_BITMAP`과
+`material: "/builtins/fonts/font.material"`, 필요한 `characters`를 지정합니다.
+외부 `.fnt` BMFont는 `font-fnt.material`을 사용합니다. 두 경우 모두 실제 글리프 범위와
+레이아웃은 소비 프로젝트의 빌드·화면으로 확인합니다.
+
 Settings store는 `load/save/locale`을 제공하고 사운드 기본값은 ON입니다. 저장 실패는
 `false`로 반환하며 panel은 기존 선택을 유지하고 오류를 표시합니다. namespace와
 파일은 기록·광고 동의 등 다른 저장 영역과 별도로 지정합니다.

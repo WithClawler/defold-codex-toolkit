@@ -19,10 +19,10 @@ function M.new(localization)
   function text.prepare(locale, callback)
     local info = localization.info(locale)
     local id, api = info.font, runtime_api()
-    if not api or ready[id] then callback(); return end
+    local spec = localization.fonts()[id]
+    if spec.runtime == false or not api or ready[id] then callback(); return end
     if pending[id] then pending[id][#pending[id] + 1] = callback; return end
     pending[id] = { callback }
-    local spec = localization.fonts()[id]
     for _, fallback in ipairs(spec.fallbacks or {}) do
       api.add_font(hash(spec.resource), hash(localization.fonts()[fallback].ttf))
     end
@@ -41,7 +41,8 @@ function M.new(localization)
     tokens[node] = (tokens[node] or 0) + 1
     local token = tokens[node]
     -- Screen visibility remains owned by the consumer, including during font preparation.
-    if runtime_api() and not ready[localization.info(selected).font] then gui.set_text(node, "") end
+    local font_id = localization.info(selected).font
+    if localization.fonts()[font_id].runtime ~= false and runtime_api() and not ready[font_id] then gui.set_text(node, "") end
     text.prepare(selected, function()
       if tokens[node] ~= token then return end
       local spec = localization.fonts()[localization.info(selected).font]
