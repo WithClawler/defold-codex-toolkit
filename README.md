@@ -333,3 +333,9 @@ Codex는 호스트 프로젝트의 `.agents/plugins/marketplace.json`에 등록�
 - GitHub URL만 넣어서 바로 설치되는 구조가 아닙니다.
 - 반드시 프로젝트 안에 이 plugin 저장소를 로컬로 clone 또는 copy한 뒤, 프로젝트 쪽 marketplace가 그 로컬 path를 참조해야 합니다.
 - README의 clone URL은 공개 저장소 `doctor-clawler/defold-codex-toolkit` 기준입니다.
+
+## 공통 웹 빌드 주소
+
+웹 빌드·미리보기의 공통 계약은 [웹 배포](../_ops/docs/local-web-deployment.md)와 [내부 DNS](../_ops/docs/internal-dns.md)를 따른다. 완료 주소는 대표 `http://<channel>.home.arpa/`, 변형 `http://defold-helper.<variation>.home.arpa/`이며 포트를 붙이지 않는다. 채널명은 소문자로 바꾸고 `_`는 `-`로 정규화하며 기존 짧은 별칭은 호환 주소로 보존한다.
+
+백엔드는 `env.dev.local`과 중앙 allocator를 사용해 LAN에 bind하고, 소유 listener·LAN HTTP·대표/변형 주소의 이번 빌드를 확인한 뒤 요청 thread에 결과를 반환한다. 프로젝트 고유 빌드·데이터 보존·배포 gate는 유지한다. 웹 미지원 프로젝트에 이 지침만으로 새 웹 지원이나 상시 서비스를 추가하지 않는다.
