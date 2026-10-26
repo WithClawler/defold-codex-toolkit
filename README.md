@@ -130,6 +130,91 @@ local string_utils = require("defold_helper.string_utils")
 
 자세한 adapter 예시는 [`docs/runtime-library.md`](docs/runtime-library.md)에 있습니다.
 
+### Catalog localization and a shared settings panel
+
+`localization_catalog`, `localized_text`, `settings_store`, `settings_panel`은
+Stack Rush의 설정·텍스트 런타임을 게임별 의존성 주입 factory로 분리한 모듈입니다.
+기존 CSV 기반 `defold_helper.localization` API는 그대로 유지합니다. 새 모듈은
+게임의 번역·서체·저장 namespace·개인정보 공급자를 내장하지 않습니다.
+
+```lua
+local catalog = require("defold_helper.localization_catalog").new(DATA, {
+  default_locale = "en-US",
+  dynamic_text = "99999999 ·", -- 숫자·ASCII 외에 게임이 동적으로 사용하는 문자
+  -- 선택 사항: 정규화된 locale을 받아 이 게임의 문서 URL을 반환합니다.
+  policy_url = function(locale) return "https://example.com/privacy/" .. locale end,
+})
+local text = require("defold_helper.localized_text").new(catalog)
+local settings = require("defold_helper.settings_store").new({
+  namespace = "my-game",
+  file_name = "game_settings",
+  localization = catalog,
+})
+local settings_ui = require("defold_helper.settings_panel").new({
+  localization = catalog,
+  localized_text = text,
+  settings_store = settings,
+  enable_privacy = false,
+  -- 선택 사항: 미지정 시 소리를 재생하지 않습니다.
+  audio = {play = function(options, kind) end, stop = function() end},
+})
+
+local options = settings.load()
+local locale = settings.locale(options, sys, html5)
+local panel = settings_ui.create(locale, options)
+settings_ui.open(panel)
+-- 정규화된 GUI 좌표와 실제 press/release 단계를 전달합니다.
+local consumed = settings_ui.handle_input(panel, "pressed", x, y)
+settings_ui.handle_input(panel, "released", x, y)
+-- panel.locale과 panel.settings를 화면·게임에 즉시 반영합니다.
+```
+
+`DATA`의 필드는 `locales = {{id, name, font, ...}}`,
+`copy = {[locale] = {[key] = value}}`,
+`fonts = {[font_id] = {name, resource, ttf, fallbacks = {font_id, ...}}}`입니다.
+`resource`는 `/gui/ko.fontc` 같은 compiled font collection 경로,
+`ttf`는 fallback으로 연결할 원본 리소스 경로입니다. 공용 카피와 게임별 override는
+소비자가 이 데이터에 합친 뒤 factory에 전달합니다. 기본 locale은 목록과 copy에
+명시되어 있어야 하며, 누락된 번역의 영어 fallback은 번역 완료로 간주하지 않습니다.
+
+Catalog는 `normalize_locale/is_supported/info/locales/fonts/font_text/detect_locale/
+copy/text/supported_locales/policy_url`을 제공합니다. 저장된 locale은 canonical ID만
+허용하고, 기기 선택은 `device_language → locale → language` 순서로 감지합니다.
+HTML5의 `?lang=`은 기기 선택 override이며 저장된 선택을 덮지 않습니다.
+
+Text renderer는 `set_locale/prepare/set/fit`을 제공합니다. fallback font를 연결한 뒤
+문구 전체와 동적 ASCII를 prewarm하고, 준비 성공 후에만 텍스트를 표시합니다.
+비동기 요청 token은 오래된 언어의 callback이 새 텍스트를 덮지 못하게 하며,
+화면이 숨긴 node를 다시 켜지 않습니다. 소비자는 runtime font generation과
+문자권별 text layout engine을 설정하고 실제 카피 inventory에 맞는 폰트·라이선스를
+번들해야 합니다. 다른 게임의 subset이 새 문구의 글리프까지 포함한다고 가정하지 않습니다.
+
+Settings store는 `load/save/locale`을 제공하고 사운드 기본값은 ON입니다. 저장 실패는
+`false`로 반환하며 panel은 기존 선택을 유지하고 오류를 표시합니다. namespace와
+파일은 기록·광고 동의 등 다른 저장 영역과 별도로 지정합니다.
+
+Settings panel은 Stack Rush의 720×1280 배치·색상과 `create/render/open/handle_input`
+호출 형태를 유지합니다. 기본 node prefix는 `privacy_center_`이고 `node_prefix`로
+변경할 수 있습니다. `create()`가 반환한 `panel.visible`, `panel.locale`,
+`panel.settings`, `panel.mode`는 소비자가 읽을 수 있습니다. 언어는 native name으로
+5개씩 보여주고, modal 밖의 입력도 소비합니다. 키보드 등 panel에 전달하지 않는
+입력은 소비자가 `panel.visible` 동안 차단해야 합니다. 한 frame에 press/release가
+함께 온 경우 두 단계를 순서대로 호출해야 합니다.
+
+광고가 없는 앱은 반드시 `enable_privacy=false`로 생성하면 sound/language/close만
+제공하며 광고 mode를 열 수 없습니다. 기본 `true`는 Stack Rush 호환용입니다.
+기존 광고/privacy 흐름을 사용하는 adapter는 `on_action(action, payload)`에서
+`privacy_options_requested`, `advertising_choice_selected`,
+`watch_rewarded_ad_requested`를 해당 게임의 controller에 전달합니다. 정책 문서 이동은
+`open_url(url)`을 주입하거나 기본 `sys.open_url`을 사용합니다. 공급자 상태는
+`settings_ui.on_message(panel, state)` 또는 기존 `panel.state=state; render(panel)`로
+갱신합니다. 이 모듈 자체는 광고·랭킹 서비스를 활성화하거나 새 동의를 만들지 않습니다.
+
+검증: `lua tests/run_lua_tests.lua`. 저장 실패·앱별 격리, locale 정규화·기기 감지,
+비동기 font 준비·오래된 callback, 언어 pagination·사운드 OFF·modal 입력 capture와
+광고 없는 구성의 provider action 차단을 확인합니다. 실제 font shaping·레이아웃은
+소비 프로젝트의 Defold 빌드와 화면 검사로 별도 검증합니다.
+
 ## 설치 방법
 
 1. 이 저장소를 로컬에 가져옵니다.
