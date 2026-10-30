@@ -1,0 +1,15 @@
+[project]
+title = HelperEngineSmoke
+
+[bootstrap]
+main_collection = /main.collectionc
+
+[display]
+width = 720
+height = 1280
+
+[script]
+shared_state = 1
+
+[input]
+game_binding = /probe.input_bindingc

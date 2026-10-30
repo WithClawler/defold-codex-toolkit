@@ -1,0 +1,85 @@
+local score_records = require("defold_helper.score_records")
+local score_ui = require("defold_helper.score_ui")
+local game_over_ui = require("defold_helper.game_over_ui")
+local gameplay_layer = require("defold_helper.gameplay_layer")
+local local_leaderboard = require("defold_helper.local_leaderboard")
+local localization = require("defold_helper.localization")
+local privacy_modal = require("defold_helper.privacy_modal")
+local scroll = require("defold_helper.scroll")
+local color_utils = require("defold_helper.color_utils")
+local table_utils = require("defold_helper.table_utils")
+local string_utils = require("defold_helper.string_utils")
+local localization_catalog = require("defold_helper.localization_catalog")
+local localized_text = require("defold_helper.localized_text")
+local settings_store = require("defold_helper.settings_store")
+local settings_panel = require("defold_helper.settings_panel")
+
+local function run()
+  local engine = sys.get_engine_info()
+  assert(engine.version == "1.14.0", "Unexpected runtime: " .. engine.version)
+  assert(gameplay_layer and local_leaderboard and table_utils)
+  assert(string_utils.join_path("/probe", "helper") == "/probe/helper")
+  assert(color_utils.to_vector4(color_utils.white()).w == 1)
+  local state = scroll.create({ min_offset = 0, max_offset = 100 })
+  scroll.apply_wheel(state, 1)
+  scroll.update(state, 1 / 60)
+  local csv = localization.from_csv("key,en\nprobe,Ready\n", { language = "en" })
+  assert(csv:text("probe") == "Ready")
+  local modal = privacy_modal.create()
+  privacy_modal.show(modal, 1)
+  assert(privacy_modal.is_open(modal))
+  privacy_modal.hide(modal)
+  assert(not privacy_modal.is_open(modal))
+
+  -- Use only the dedicated test namespace and remove the files afterwards.
+  local namespace = "defold-helper-engine-smoke"
+  local scores = score_records.finish_round({ current_score = 42, current_combo = 3 })
+  score_records.save(scores, { app_name = namespace })
+  assert(score_records.load({ app_name = namespace }).best_score == 42)
+  assert(score_ui.hud_labels(scores).current == "RUN 42")
+  assert(game_over_ui.result_score_text(scores):find("42", 1, true))
+  os.remove(sys.get_save_file(namespace, "score_records"))
+
+  local catalog = localization_catalog.new({
+    locales = { { id = "en-US", name = "English", font = "probe" } },
+    fonts = { probe = { name = "hud_font", resource = "/builtins/fonts/default.fontc", runtime = false } },
+    copy = { ["en-US"] = { settings = "Settings", close = "Close", sound = "Sound",
+      sound_on = "On", sound_off = "Off", language = "Language", language_name = "English" } },
+  })
+  local store = settings_store.new({ localization = catalog, namespace = namespace })
+  assert(store.save({ sound_enabled = true, locale = "en-US" }))
+  assert(store.load().locale == "en-US")
+  local text = localized_text.new(catalog)
+  local label = gui.new_text_node(vmath.vector3(360, 640, 0), "")
+  text.set(label, "Helper ready")
+  assert(gui.get_text(label) == "Helper ready")
+  text.fit(label, 200, 1, 0.5)
+  local panel_api = settings_panel.new({
+    localization = catalog, localized_text = text, settings_store = store, enable_privacy = false,
+  })
+  local panel = panel_api.create("en-US", store.load())
+  panel_api.open(panel)
+  assert(panel.visible and panel.mode == "settings")
+  local sound_position = gui.get_position(panel.buttons.sound.hit)
+  assert(panel_api.handle_input(panel, "pressed", sound_position.x, sound_position.y))
+  assert(panel_api.handle_input(panel, "released", sound_position.x, sound_position.y))
+  assert(panel.settings.sound_enabled == false and store.load().sound_enabled == false)
+  local close_position = gui.get_position(panel.buttons.close.hit)
+  panel_api.handle_input(panel, "pressed", close_position.x, close_position.y)
+  panel_api.handle_input(panel, "released", close_position.x, close_position.y)
+  assert(not panel.visible)
+  os.remove(sys.get_save_file(namespace, "game_settings"))
+  print("DEFOLD_HELPER_ENGINE_SMOKE_OK " .. engine.version .. " " .. engine.version_sha1)
+end
+
+function init(self)
+  self.frames = 0
+end
+
+function update(self, dt)
+  self.frames = self.frames + 1
+  if self.frames ~= 3 then return end
+  local ok, message = pcall(run)
+  if not ok then print("DEFOLD_HELPER_ENGINE_SMOKE_FAILED " .. tostring(message)) end
+  msg.post("@system:", "exit", { code = ok and 0 or 1 })
+end

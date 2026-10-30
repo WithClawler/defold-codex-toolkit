@@ -279,6 +279,9 @@ Defold 엔진 최신 릴리즈는 별도 주간 job이 확인합니다.
 
 엔진 업그레이드는 프로젝트별로 수행합니다. `defold_helper`를 쓰는 프로젝트는 Defold Editor 또는 `bob.jar` 버전과 이 toolkit의 `defold_helper` dependency tag/commit을 함께 맞춰야 합니다. 즉, `defold_helper`는 Defold 엔진과 같은 패키지는 아니지만 업그레이드 검증 단위에서는 함께 정합성을 맞추는 대상으로 봅니다.
 
+Defold 1.14.0의 공식 SHA, 실제 엔진 smoke 재현 방법과 소비 프로젝트 적용 범위는
+[`docs/engine-compatibility.md`](docs/engine-compatibility.md)에 기록합니다.
+
 ## 프로젝트 한정 사용 방법
 
 다른 프로젝트에서 plugin을 붙여 쓰려면 다음 순서를 따릅니다.
