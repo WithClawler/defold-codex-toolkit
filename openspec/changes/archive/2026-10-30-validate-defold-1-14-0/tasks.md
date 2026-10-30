@@ -8,7 +8,7 @@
 ## 2. Compatibility release
 
 - [x] 2.1 공식 release, SHA, inventory, breaking change 영향과 검증 경계를 문서화하고 strict spec validation을 통과한다.
-- [ ] 2.2 검증한 변경을 commit/push하고 defold-1.14.0 호환 tag를 원격 재조회한다.
+- [x] 2.2 검증한 변경을 commit/push하고 defold-1.14.0 호환 tag를 원격 재조회한다.
 
 ## Workflow follow-up
 
