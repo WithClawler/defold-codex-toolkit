@@ -91,3 +91,10 @@ Single-HTML validation:
 - confirm the source bundle uses `wasm-web`, not pthread-only WebAssembly
 - open the output through the intended delivery path and inspect browser console errors
 - verify gameplay input and any advertising SDK callbacks separately
+
+## Android Release size and symbols
+
+- `--variant release` and symbol stripping are separate. Pass `--strip-executable --with-symbols` for Android Release bundles; retain generated symbol output privately for crash analysis. Never publish symbol archives with the game.
+- Audit the final signed AAB with `python3 scripts/android_bundle_audit.py app.aab --require-stripped`. This checks every packaged ELF, fails on remaining DWARF debug sections, and reports ZIP sizes per ABI. ZIP bytes are not Play download estimates.
+- Preserve upload signer, ABI support, ELF/ZIP 16KB alignment, ads/consent behavior and localized font shaping. Do not remove a renderer or SDK solely from a size guess.
+- Keep package IDs, production ad IDs, signing credentials, privacy declarations and game rules in the consumer project.
