@@ -267,7 +267,7 @@ scripts/install-latest-check-launchd.sh
 
 ## Defold 엔진 릴리즈 체크
 
-Defold 엔진 최신 릴리즈는 별도 주간 Python job이 GitHub Releases API와 저장된 버전을 비교해 확인합니다. AI 모델은 호출하지 않으며 패치 노트는 원문 발췌입니다. 따라서 모델을 호출하는 자동화에 적용되는 Gemini 우선/Luna fallback 대상이 아닙니다. AI 분석을 추가할 때는 `_ops/docs/automation-model-routing.md`의 공통 모델 정책을 사용합니다.
+Defold 엔진 최신 릴리즈는 주간 Python job이 GitHub Releases API와 저장된 버전을 비교해 확인합니다. 감지기는 모델을 호출하지 않고 릴리즈별 요청을 저장합니다. `_ops`가 요청을 받아 중앙 자동화 모델 정책으로 helper 영향 분석·수정·검증 작업을 실행하고 프로젝트 채널에 결과를 게시합니다. 실행 범위와 완료 조건은 [엔진 릴리즈 자동화](docs/engine-release-automation.md)를 따릅니다.
 
 - 릴리즈 체크 스크립트: `scripts/check_defold_engine_release.py`
 - launchd 래퍼: `scripts/run-defold-engine-release-check.sh`
@@ -275,9 +275,9 @@ Defold 엔진 최신 릴리즈는 별도 주간 Python job이 GitHub Releases AP
 - Slack 알림 채널: `#defold-helper` (`C0AQVKUJTV3`)
 - 상태 파일: `.local/state/defold-engine-release.json`
 
-첫 실행에서는 현재 최신 Defold 릴리즈를 baseline으로 저장하고 Slack 메시지를 보내지 않습니다. 이후 새 릴리즈가 감지되면 공식 release notes 발췌와 `defold-engine-upgrade` 권장 절차를 프로젝트 채널에 보냅니다. 채널을 바꿀 때도 상태 파일은 유지해 같은 버전을 다시 알리지 않습니다.
+첫 실행에서는 현재 최신 Defold 릴리즈를 baseline으로 저장합니다. 이후 새 릴리즈는 `.local/engine-release-jobs/<version>/request.json`으로 기록합니다. launchd의 `DEFOLD_ENGINE_RELEASE_AUTOMATION=1`과 `_ops`의 opt-in 설정이 연결을 활성화합니다. 이미 감지한 릴리즈는 `--automation --catch-up`으로 한 번 보충할 수 있습니다. `--dry-run`과 `--no-notify`는 작업을 등록하지 않습니다. automation 옵션이 없는 수동 실행은 기존 직접 알림 모드를 유지합니다.
 
-알림 스레드에서 처음 후속 작업을 요청할 때는 `@춘자`를 멘션합니다. `_ops`가 원래 릴리즈 알림을 읽어 프로젝트 작업 스레드를 시작하고, 이후에는 해당 스레드에서 대화를 이어갈 수 있습니다. 로그 채널은 이 작업 리스너의 대상이 아닙니다.
+자동 작업이 시작된 스레드는 프로젝트 세션과 연결되어 후속 대화를 이어갈 수 있습니다. 작업은 helper 검증·호환 태그 발행까지 수행하고 소비 게임은 영향 목록만 보고합니다. 실행 오류·결과 검증 실패에는 fallback을 한 번만 시도하고, 취소·유효한 차단 보고에는 새 호출을 만들지 않습니다.
 
 두 주간 job은 `OpsMacAutomationRunner`를 통해 실행합니다. `scripts/install-latest-check-launchd.sh`는 runner가 설치되어 있는지 확인하며, 재설치해도 외장 볼륨 접근용 runner 접두를 유지합니다.
 

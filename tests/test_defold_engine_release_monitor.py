@@ -6,6 +6,7 @@ import plistlib
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 
@@ -43,6 +44,55 @@ def write_release(path: Path, *, tag_name: str, body: str = "- Engine fix\n- Bui
 
 
 class DefoldEngineReleaseMonitorTests(unittest.TestCase):
+    def automation_fixture(self, directory, **kwargs):
+        monitor = load_monitor()
+        root = Path(directory)
+        write_release(root / "release.json", tag_name="1.14.1")
+        (root / "state.json").write_text(json.dumps({"tag_name": "1.14.0"}))
+        config = monitor.ReleaseMonitorConfig(release_json_path=root / "release.json", state_path=root / "state.json",
+            jobs_path=root / "jobs", automation=True, **kwargs)
+        return monitor, config
+
+    def test_automation_queues_once_without_direct_slack_and_catch_up_reuses_request(self):
+        with tempfile.TemporaryDirectory() as directory:
+            monitor, config = self.automation_fixture(directory)
+            with patch.object(monitor, "send_slack_message", side_effect=AssertionError("direct Slack")):
+                result = monitor.check_release(config)
+                original = result.request_path.read_bytes()
+                self.assertEqual(json.loads(original)["previous_tag"], "1.14.0")
+                self.assertFalse(monitor.check_release(config).changed)
+                from dataclasses import replace
+                replay = monitor.check_release(replace(config, catch_up=True))
+                self.assertEqual(replay.request_path.read_bytes(), original)
+                self.assertEqual(len(list(Path(directory).glob("jobs/*/request.json"))), 1)
+
+    def test_failed_queue_preserves_observed_version(self):
+        with tempfile.TemporaryDirectory() as directory:
+            monitor, config = self.automation_fixture(directory)
+            with patch.object(monitor, "queue_release", side_effect=OSError("disk full")):
+                with self.assertRaises(OSError):
+                    monitor.check_release(config)
+            self.assertEqual(json.loads(config.state_path.read_text())["tag_name"], "1.14.0")
+
+    def test_automation_preview_and_no_notify_never_enqueue(self):
+        for kwargs in ({"dry_run": True}, {"notify": False}):
+            with self.subTest(kwargs=kwargs), tempfile.TemporaryDirectory() as directory:
+                monitor, config = self.automation_fixture(directory, **kwargs)
+                self.assertIsNone(monitor.check_release(config).request_path)
+                self.assertFalse(config.jobs_path.exists())
+                if config.dry_run:
+                    self.assertEqual(json.loads(config.state_path.read_text())["tag_name"], "1.14.0")
+
+    def test_automation_rejects_untrusted_release_identity(self):
+        for changes in ({"tag_name": "../../outside"}, {"html_url": "https://example.org/release"}, {"prerelease": True}):
+            with self.subTest(changes=changes), tempfile.TemporaryDirectory() as directory:
+                monitor, config = self.automation_fixture(directory)
+                release = json.loads(config.release_json_path.read_text()) | changes
+                config.release_json_path.write_text(json.dumps(release))
+                with self.assertRaises(ValueError):
+                    monitor.check_release(config)
+                self.assertEqual(json.loads(config.state_path.read_text())["tag_name"], "1.14.0")
+
     def test_initial_release_records_baseline_without_message(self) -> None:
         monitor = load_monitor()
         with tempfile.TemporaryDirectory() as temp_dir:

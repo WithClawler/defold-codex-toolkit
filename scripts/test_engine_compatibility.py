@@ -17,11 +17,15 @@ ENGINE_SHA = "d295ed4edff2e49072719835713e625f409849f1"
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--bob", type=Path, default=os.environ.get("BOB_JAR", ROOT / ".local/engine" / VERSION / "bob.jar"))
+    parser.add_argument("--engine-version", default=VERSION)
+    parser.add_argument("--engine-sha", default=ENGINE_SHA)
     args = parser.parse_args()
     bob = args.bob.resolve()
     version = subprocess.check_output(["java", "-jar", str(bob), "--version"], text=True)
-    if not re.search(r"version: 1\.14\.0\s+sha1: " + ENGINE_SHA, version):
-        parser.error("Bob must be Defold 1.14.0 stable " + ENGINE_SHA)
+    if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", args.engine_version) or not re.fullmatch(r"[a-f0-9]{40}", args.engine_sha):
+        parser.error("Expected stable engine version and official SHA-1")
+    if not re.search(r"version: " + re.escape(args.engine_version) + r"\s+sha1: " + args.engine_sha, version):
+        parser.error(f"Bob must be Defold {args.engine_version} stable {args.engine_sha}")
     if platform.system() != "Darwin":
         parser.error("This runner verifies the macOS headless engine only")
     native_platform = "arm64-macos" if platform.machine() == "arm64" else "x86_64-macos"
@@ -29,6 +33,8 @@ def main():
     run_dir = Path(tempfile.mkdtemp(prefix="engine-smoke-", dir=ROOT / ".local"))
     project = run_dir / "project"
     shutil.copytree(ROOT / "tests/engine", project)
+    (project / "engine_expectations.lua").write_text(
+        f'return {{ version = "{args.engine_version}", sha = "{args.engine_sha}" }}\n')
     shutil.copytree(ROOT / "defold_helper", project / "defold_helper")
     print("Smoke project:", project, flush=True)
     command = ["java", "-jar", str(bob), "--root", str(project), "--output", "build",
@@ -45,7 +51,7 @@ def main():
         raise SystemExit("Engine smoke timed out; see " + str(run_dir / "runtime.log"))
     (run_dir / "runtime.log").write_text(result.stdout)
     print(result.stdout, end="")
-    if result.returncode or f"DEFOLD_HELPER_ENGINE_SMOKE_OK {VERSION} {ENGINE_SHA}" not in result.stdout:
+    if result.returncode or f"DEFOLD_HELPER_ENGINE_SMOKE_OK {args.engine_version} {args.engine_sha}" not in result.stdout:
         raise SystemExit("Engine smoke failed; see " + str(run_dir / "runtime.log"))
     print("Engine compatibility verified:", run_dir)
 

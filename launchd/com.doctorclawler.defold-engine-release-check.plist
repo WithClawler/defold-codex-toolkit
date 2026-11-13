@@ -20,6 +20,8 @@
       <string>C0AQVKUJTV3</string>
       <key>DEFOLD_ENGINE_RELEASE_STATE_PATH</key>
       <string>__PROJECT_ROOT__/.local/state/defold-engine-release.json</string>
+      <key>DEFOLD_ENGINE_RELEASE_AUTOMATION</key>
+      <string>1</string>
     </dict>
     <key>StartCalendarInterval</key>
     <dict>
