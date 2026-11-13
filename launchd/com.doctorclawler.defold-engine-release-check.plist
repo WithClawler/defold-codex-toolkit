@@ -6,6 +6,9 @@
     <string>com.doctorclawler.defold-engine-release-check</string>
     <key>ProgramArguments</key>
     <array>
+      <string>__HOME__/Applications/OpsMacAutomationRunner.app/Contents/MacOS/ops-mac-automation-runner</string>
+      <string>exec</string>
+      <string>--</string>
       <string>/bin/zsh</string>
       <string>__PROJECT_ROOT__/scripts/run-defold-engine-release-check.sh</string>
     </array>
@@ -14,7 +17,7 @@
       <key>DEFOLD_TOOLKIT_REPO</key>
       <string>__PROJECT_ROOT__</string>
       <key>DEFOLD_ENGINE_RELEASE_SLACK_CHANNEL</key>
-      <string>C0ARH1MHF4H</string>
+      <string>C0AQVKUJTV3</string>
       <key>DEFOLD_ENGINE_RELEASE_STATE_PATH</key>
       <string>__PROJECT_ROOT__/.local/state/defold-engine-release.json</string>
     </dict>

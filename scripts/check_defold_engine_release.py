@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any
 
 
-DEFAULT_CHANNEL = "C0ARH1MHF4H"
+DEFAULT_CHANNEL = "C0AQVKUJTV3"
 DEFAULT_RELEASE_URL = "https://api.github.com/repos/defold/defold/releases/latest"
 DEFAULT_STATE_PATH = Path(__file__).resolve().parents[1] / ".local" / "state" / "defold-engine-release.json"
 DEFAULT_SLACK_RUNNER = Path("/Users/clawler/.codex/skills/slack-send/scripts/slack_send.py")
@@ -112,7 +112,7 @@ def format_release_message(
             f"버전: `{version_line}`",
             f"릴리즈 노트: {release_url}",
             "",
-            "*패치 노트 요약*",
+            "*릴리즈 노트 발췌*",
             "```",
             body_summary,
             "```",
@@ -121,6 +121,8 @@ def format_release_message(
             "- `defold-engine-upgrade` skill로 영향 프로젝트를 먼저 inventory 합니다.",
             "- 프로젝트별 Defold Editor/bob 버전과 `defold_helper` dependency tag/commit을 함께 맞춥니다.",
             "- `defold_helper` 호환 tag가 아직 없으면 이 toolkit에서 먼저 검증한 뒤 소비 프로젝트를 올립니다.",
+            "",
+            "후속 작업은 이 스레드에서 <@U0AMJG1MK1D>를 멘션해 요청하세요.",
         ]
     )
 

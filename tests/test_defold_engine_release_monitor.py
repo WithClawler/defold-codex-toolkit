@@ -55,7 +55,7 @@ class DefoldEngineReleaseMonitorTests(unittest.TestCase):
                 monitor.ReleaseMonitorConfig(
                     release_json_path=release_path,
                     state_path=state_path,
-                    channel="C0ARH1MHF4H",
+                    channel="C0AQVKUJTV3",
                     notify=False,
                 )
             )
@@ -82,7 +82,7 @@ class DefoldEngineReleaseMonitorTests(unittest.TestCase):
                 monitor.ReleaseMonitorConfig(
                     release_json_path=release_path,
                     state_path=state_path,
-                    channel="C0ARH1MHF4H",
+                    channel="C0AQVKUJTV3",
                     notify=False,
                 )
             )
@@ -111,7 +111,7 @@ class DefoldEngineReleaseMonitorTests(unittest.TestCase):
                 monitor.ReleaseMonitorConfig(
                     release_json_path=release_path,
                     state_path=state_path,
-                    channel="C0ARH1MHF4H",
+                    channel="C0AQVKUJTV3",
                     notify=False,
                 )
             )

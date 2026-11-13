@@ -6,6 +6,9 @@
     <string>com.doctorclawler.defold-codex-toolkit.latest-check</string>
     <key>ProgramArguments</key>
     <array>
+      <string>__HOME__/Applications/OpsMacAutomationRunner.app/Contents/MacOS/ops-mac-automation-runner</string>
+      <string>exec</string>
+      <string>--</string>
       <string>/bin/zsh</string>
       <string>__PROJECT_ROOT__/scripts/run-latest-check.sh</string>
     </array>

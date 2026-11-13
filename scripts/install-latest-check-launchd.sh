@@ -9,6 +9,12 @@ PLIST_TEMPLATE="$PROJECT_ROOT/launchd/com.doctorclawler.defold-codex-toolkit.lat
 PLIST_PATH="$LAUNCH_AGENTS_DIR/com.doctorclawler.defold-codex-toolkit.latest-check.plist"
 ENGINE_PLIST_TEMPLATE="$PROJECT_ROOT/launchd/com.doctorclawler.defold-engine-release-check.plist"
 ENGINE_PLIST_PATH="$LAUNCH_AGENTS_DIR/com.doctorclawler.defold-engine-release-check.plist"
+AUTOMATION_RUNNER="$HOME/Applications/OpsMacAutomationRunner.app/Contents/MacOS/ops-mac-automation-runner"
+
+if [ ! -x "$AUTOMATION_RUNNER" ]; then
+  printf 'OpsMacAutomationRunner executable not found: %s\n' "$AUTOMATION_RUNNER" >&2
+  exit 1
+fi
 
 mkdir -p "$LAUNCH_AGENTS_DIR" "$LOG_DIR"
 sed \
