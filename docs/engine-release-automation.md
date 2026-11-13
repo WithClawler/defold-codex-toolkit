@@ -8,7 +8,7 @@
 
 `skills/defold-engine-upgrade/SKILL.md`를 읽고 다음 순서로 완료한다.
 
-1. 공식 release notes와 필요한 공식 API 문서를 확인해 현재 helper에 영향을 주는 변경·수정 필요 여부를 판단한다. metadata만 있으면 대응하는 Defold 공식 릴리즈 글과 변경 이력을 추가로 확인한다.
+1. 공식 release notes와 필요한 공식 API 문서를 확인해 현재 helper에 영향을 주는 변경·수정 필요 여부를 판단한다. metadata만 있으면 대응하는 Defold 공식 릴리즈 글과 변경 이력을 추가로 확인한다. 검토한 원문 링크와 영향을 받는 helper 모듈·API를 기록한다.
 2. 공식 `bob.jar`를 `.local/engine/<version>/bob.jar`에 받고 엔진 버전/SHA와 파일 SHA-256을 기록한다. 기존 공유 Bob이나 소비 프로젝트 파일을 덮어쓰지 않는다.
 3. 필요한 helper 수정·회귀 테스트를 구현한다. 영향이 없으면 변경 불필요 근거를 남기고 같은 검증을 수행한다. fallback 작업은 이미 작성한 파일·commit·tag·로그를 확인하고 이어서 진행한다. reset/stash나 태그 덮어쓰기를 하지 않는다.
 4. Lua suite, Python suite, 대상 엔진 headless 검사를 실행하고 각각 전체 로그를 작업 디렉터리에 저장한다. 실패하면 helper와 테스트를 수정하고 재검증한다. Python은 `python3 -m unittest discover -s tests -p 'test_*.py'`, Lua는 `lua tests/run_lua_tests.lua`, 엔진은 아래 명령이다.
@@ -19,9 +19,9 @@ python3 scripts/test_engine_compatibility.py \
   --engine-version <version> --engine-sha <official-sha1>
 ```
 
-5. `docs/engine-compatibility.md`에 대상 엔진·공식 출처·수정 내역·검증·소비 프로젝트 영향·미검증 범위를 추가한다. headless 통과를 소비 게임 플레이/광고/화면/실기기 검증으로 표현하지 않는다.
+5. `docs/engine-compatibility.md`에 대상 엔진·공식 출처·수정 내역·검증·소비 프로젝트 영향·미검증 범위를 추가한다. 소비 프로젝트는 현재 `game.project`의 helper pin과 빌드 스크립트의 엔진 기본값을 조사 날짜와 함께 기록하고, 기존 표를 현재 조사로 간주하지 않는다. headless 통과를 소비 게임 플레이/광고/화면/실기기 검증으로 표현하지 않는다. mock·정적 폰트 검사와 실제 동적 폰트 렌더링도 구분한다.
 6. 요청 source/doc/test 변경만 commit하고 현재 upstream에 push한다. 검증한 commit에 `defold-<version>` 호환 태그를 만들고 origin에 push한다. 같은 태그가 이미 있으면 근거와 commit을 대조하고 기존 태그를 보존한다. conflict면 blocked로 보고한다.
-7. 작업 디렉터리의 `result.json`을 작성하고 final로 결과를 반환한다. Slack 직접 게시나 user-token 요청을 하지 않는다. runtime bot이 이 작업 스레드에 게시한다.
+7. 작업 디렉터리의 `result.json`을 작성하고 final로 결과를 반환한다. Slack 직접 게시나 user-token 요청을 하지 않는다. runtime bot이 이 작업 스레드에 게시한다. 파일 링크는 프롬프트의 원래 저장소 절대 경로를 사용한 Markdown 링크로 반환한다. 실행 도구의 가상 드라이브 경로나 `localhost` 파일 URL을 사용자 링크로 사용하지 않는다.
 
 ## 결과 계약
 

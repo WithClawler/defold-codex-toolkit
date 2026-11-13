@@ -9,9 +9,9 @@
 - [x] 2.2 daemon 시작·종료와 worker 경계를 연결하고 registry 검사 및 운영 문서를 검증한다.
 
 ## 3. Delivery
-- [ ] 3.1 요청 변경만 commit/push하고 안전한 운영 배포·launchd 설정을 실제 재조회한다.
-- [ ] 3.2 1.14.1 catch-up의 durable 작업·실제 모델·프로젝트 채널 결과·호환 검증 근거를 확인한다.
-- [ ] 3.3 OpenSpec strict 검증과 최종 Git 상태를 확인하고 완료 근거를 기록한다.
+- [x] 3.1 요청 변경만 commit/push하고 안전한 운영 배포·launchd 설정을 실제 재조회한다.
+- [x] 3.2 1.14.1 catch-up의 durable 작업·실제 모델·프로젝트 채널 결과·호환 검증 근거를 확인한다.
+- [x] 3.3 OpenSpec strict 검증과 최종 Git 상태를 확인하고 완료 근거를 기록한다.
 
 ## Workflow follow-up
 - 완료 후 명세를 archive하고 기록을 commit/push한다.

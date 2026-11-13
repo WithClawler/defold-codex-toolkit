@@ -10,6 +10,8 @@ Bob release asset의 SHA-256은
 공식 근거:
 
 - [Stable release와 engine SHA](https://github.com/defold/defold/releases/tag/1.14.1)
+- [1.14.1 공식 릴리즈 글](https://defold.com/2026/11/10/Defold-1-14-1/)
+- [전체 변경 이력과 migration 항목](https://forum.defold.com/t/defold-1-14-1-has-been-released/83487)
 - [공식 문서 인덱스](https://defold.com/llms.txt)
 
 검증 결과:
@@ -23,6 +25,26 @@ Bob release asset의 SHA-256은
 - 1.14.1의 주요 변경(Runtime Vector Fonts/Emoji, Native Lua DAP, glTF/PBR, OpenGL ES 2.0/WebGL 1 opt-in 및 `Exclude GLES 2.0` 기본값 활성화, attachment 없는 render target 거부)은 `defold_helper` Lua 모듈에 직접적인 breaking change를 주지 않는다.
 - 레거시 WebGL 1/GLES 2.0 타겟이나 커스텀 render target을 사용하는 소비 게임은 프로젝트 설정 점검이 필요하며, 이번 작업에서는 소비 게임을 수정·빌드·배포하지 않았다.
 - Headless 검사는 소비 게임의 플레이·광고·화면 렌더링·실기기 QA를 증명하지 않는다.
+
+`localized_text.lua`는 `font.prewarm_text`와 fallback font 추가를 사용하므로 폰트 변경 검토 대상이다.
+기존 Lua suite는 준비 콜백·fallback 순서·정적 폰트 분기를 mock으로 검사하며, 엔진 smoke는
+`runtime=false`인 기본 폰트로 실제 GUI 설정·텍스트·입력을 검사한다. 이번 통과는 새 Vector/Emoji
+글리프의 실제 렌더링과 소비 게임별 동적 폰트 품질까지 검증했다는 뜻이 아니다.
+helper에는 custom render target 생성이나 native web server handler 구현이 없다.
+
+2026-11-13에 소비 프로젝트의 `game.project`와 `scripts/ensure_defold.sh`를 다시 읽었다.
+아래 엔진 값은 빌드 스크립트 기본값이며, 각 게임의 이번 빌드·실행 결과가 아니다.
+
+| 소비 프로젝트 | 엔진 기본값 | 현재 helper dependency commit |
+| --- | --- | --- |
+| Blocktris | `1.14.0` | `c4c1ddbd1f0119ff544db116c788e803e2e2ba6e` |
+| FirstDonut | `1.14.0` | `1c4e96da9aa941d6d88a494178ab5b300d4750e2` |
+| Mini Survivor | `1.14.0` | `1c4e96da9aa941d6d88a494178ab5b300d4750e2` |
+| Daily Arcade Rotation | `1.14.0` | `1c4e96da9aa941d6d88a494178ab5b300d4750e2` |
+| Stack Rush (`daily-arcade-rotation/apps/stack-rush`) | `1.14.0` | `1c4e96da9aa941d6d88a494178ab5b300d4750e2` |
+
+검색에 함께 나온 `blocktris-release`와 `mini-survivor-release`는 별도 출시 checkout으로
+계산하며 dependency를 변경하지 않았다. 이 자동화는 소비 게임의 엔진·helper pin을 바꾸지 않는다.
 
 ## Defold 1.14.0 stable — 2026-10-30
 
