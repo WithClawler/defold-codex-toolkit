@@ -1,5 +1,29 @@
 # Defold engine compatibility
 
+## Defold 1.14.1 stable — 2026-11-13
+
+공식 엔진은 `1.14.1`, SHA는 `ee283d4dad9fa451dd6399d83602e1dc25133681`이다.
+Bob release asset의 SHA-256은
+`f47e0d21fee84c3c1f56adfe5feb1c328f83df9e4fe26f2616a5392b9b710b45`이다.
+공용 Lua API 및 `defold_helper` 코드는 변경하지 않았다. 호환 tag는 `defold-1.14.1`이다.
+
+공식 근거:
+
+- [Stable release와 engine SHA](https://github.com/defold/defold/releases/tag/1.14.1)
+- [공식 문서 인덱스](https://defold.com/llms.txt)
+
+검증 결과:
+
+- `lua tests/run_lua_tests.lua`: `OK`
+- `python3 -m unittest discover -s tests -p 'test_*.py'`: 15개 테스트 통과 (`OK`)
+- `python3 scripts/test_engine_compatibility.py --bob .local/engine/1.14.1/bob.jar --engine-version 1.14.1 --engine-sha ee283d4dad9fa451dd6399d83602e1dc25133681`: macOS headless 엔진 smoke 통과 (`DEFOLD_HELPER_ENGINE_SMOKE_OK 1.14.1 ee283d4dad9fa451dd6399d83602e1dc25133681`)
+
+소비 프로젝트 영향 및 미검증 범위:
+
+- 1.14.1의 주요 변경(Runtime Vector Fonts/Emoji, Native Lua DAP, glTF/PBR, OpenGL ES 2.0/WebGL 1 opt-in 및 `Exclude GLES 2.0` 기본값 활성화, attachment 없는 render target 거부)은 `defold_helper` Lua 모듈에 직접적인 breaking change를 주지 않는다.
+- 레거시 WebGL 1/GLES 2.0 타겟이나 커스텀 render target을 사용하는 소비 게임은 프로젝트 설정 점검이 필요하며, 이번 작업에서는 소비 게임을 수정·빌드·배포하지 않았다.
+- Headless 검사는 소비 게임의 플레이·광고·화면 렌더링·실기기 QA를 증명하지 않는다.
+
 ## Defold 1.14.0 stable — 2026-10-30
 
 공식 엔진은 `1.14.0`, SHA는 `d295ed4edff2e49072719835713e625f409849f1`이다.
