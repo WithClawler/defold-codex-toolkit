@@ -12,4 +12,4 @@
 
 ## 3. Delivery
 
-- [ ] 3.1 커밋·push하고 mini-survivor가 새 커밋을 의존성으로 받아 빌드되는지 확인한다
+- [x] 3.1 커밋·push하고 mini-survivor가 새 커밋을 의존성으로 받아 빌드되는지 확인한다
