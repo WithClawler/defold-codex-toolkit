@@ -50,10 +50,16 @@ function M.accept(gate, source, phase, now)
   assert(type(now) == "number", "a monotonic time is required")
   if source == M.TOUCH then
     gate.last_touch_time = now
+    if gate.owner == M.MOUSE then
+      -- The engine emulated this touch as a mouse first. Touch takes the
+      -- gesture over; its press is the same press, not a new one.
+      gate.owner = phase ~= M.RELEASED and M.TOUCH or nil
+      return phase ~= M.PRESSED
+    end
   elseif gate.touch_only then
     return false
-  elseif gate.last_touch_time and now - gate.last_touch_time <= gate.echo_window then
-    -- Compatibility mouse events trail a real touch; they are never a new tap.
+  elseif gate.owner ~= M.MOUSE and gate.last_touch_time and now - gate.last_touch_time <= gate.echo_window then
+    -- Compatibility mouse events trail a real touch; they never start a tap.
     return false
   end
   if gate.owner and gate.owner ~= source then

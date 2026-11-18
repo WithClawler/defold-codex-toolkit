@@ -13,6 +13,10 @@ The helper SHALL accept a gesture from the first source that presses and SHALL i
 - **WHEN** one physical touch produces a touch press and a mouse press in the same frame
 - **THEN** only the first press is accepted and the other source's held and release events are ignored
 
+#### Scenario: Engine emulates the touch as a mouse first
+- **WHEN** a mouse press for a touch arrives before the touch press of the same gesture
+- **THEN** the touch takes the gesture over without a second press, and the gesture ends with the touch release while the emulated mouse events are ignored
+
 #### Scenario: Native mobile touch-only mode
 - **WHEN** the gate is created in touch-only mode
 - **THEN** every mouse event is ignored, including one that arrives before any touch

@@ -46,6 +46,30 @@ local function run()
   tap_input.reset(gate)
   assert.equal(tap_input.accept(gate, M, R, 4.60), false, "release after an explicit reset is ignored")
 
+  -- The engine emulates a touch as mouse first: touch takes the gesture over.
+  local emulated = tap_input.gate()
+  assert.equal(tap_input.accept(emulated, M, P, 20.00), true, "emulated mouse press arrives first and starts the gesture")
+  assert.equal(tap_input.accept(emulated, T, P, 20.00), false, "the real touch press is the same press")
+  assert.equal(tap_input.owner(emulated), T, "touch owns the gesture after taking over")
+  assert.equal(tap_input.accept(emulated, M, H, 20.02), false, "emulated mouse held frames are ignored after takeover")
+  assert.equal(tap_input.accept(emulated, T, H, 20.02), true, "touch held frames continue the gesture")
+  assert.equal(tap_input.accept(emulated, M, R, 20.10), false, "emulated mouse release is ignored")
+  assert.equal(tap_input.accept(emulated, T, R, 20.10), true, "touch release ends the gesture")
+  assert.equal(tap_input.owner(emulated), nil, "gesture cleared")
+  assert.equal(tap_input.accept(emulated, T, P, 20.40), true, "the next touch starts a new gesture")
+  assert.equal(tap_input.accept(emulated, M, P, 20.40), false, "its emulated mouse press is a duplicate")
+  assert.equal(tap_input.accept(emulated, T, R, 20.50), true, "and the touch release ends it")
+  local takeover_release = tap_input.gate()
+  tap_input.accept(takeover_release, M, P, 30)
+  assert.equal(tap_input.accept(takeover_release, T, R, 30.1), true, "a touch release can end an emulated mouse gesture")
+  assert.equal(tap_input.owner(takeover_release), nil, "and clears it")
+
+  -- A real mouse gesture keeps its held and release frames.
+  local desktop = tap_input.gate()
+  assert.equal(tap_input.accept(desktop, M, P, 40), true, "mouse press")
+  assert.equal(tap_input.accept(desktop, M, H, 40.5), true, "mouse drag frames")
+  assert.equal(tap_input.accept(desktop, M, R, 41), true, "mouse release")
+
   -- Native mobile builds accept touch only.
   local mobile = tap_input.gate({ touch_only = true })
   assert.equal(tap_input.accept(mobile, M, P, 10), false, "touch-only gate rejects emulated mouse even first")
