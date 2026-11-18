@@ -10,6 +10,7 @@
 - `defold_helper.localization`
 - `defold_helper.privacy_modal`
 - `defold_helper.scroll`
+- `defold_helper.tap_input`
 - `defold_helper.color_utils`
 - `defold_helper.table_utils`
 - `defold_helper.string_utils`
@@ -38,6 +39,7 @@ local score_ui = require("defold_helper.score_ui")
 local local_leaderboard = require("defold_helper.local_leaderboard")
 local privacy_modal = require("defold_helper.privacy_modal")
 local scroll = require("defold_helper.scroll")
+local tap_input = require("defold_helper.tap_input")
 local color_utils = require("defold_helper.color_utils")
 local table_utils = require("defold_helper.table_utils")
 local string_utils = require("defold_helper.string_utils")
@@ -192,6 +194,69 @@ end
 ```
 
 Keep project-specific legal copy in the consuming project, or feed it from `defold_helper.localization` through a local adapter. The helper should not include app names, policy claims, store URLs, or publisher contact data.
+
+## Tap Input Adapter
+
+`defold_helper.tap_input` owns the two input rules every Defold UI needs and that otherwise get re-invented per game:
+
+- **One source per gesture.** On mobile a single touch reaches `on_input` through both a `MOUSE_BUTTON_1` binding and a `TOUCH_MULTI` binding, and mobile browsers add compatibility mouse events after the touch ends. `tap_input.gate` lets the first source own the gesture, ignores the other source until release, ignores mouse events for `echo_window` seconds (default 1.0) after any touch event, and ignores releases or held frames that have no accepted press. Native Android/iOS builds can pass `touch_only = true`.
+- **Activate on release.** `tap_input.tap` arms the target under the press, disarms while the pointer is off that target, re-arms when it returns, and activates only when the release lands on the same target. A press on nothing can never activate by sliding onto a button. `slop` turns a press into a scroll gesture once it moves too far. `tap_input.pressed` returns the armed target and bounds so the HUD can show a pressed state.
+
+The consuming game still owns its bindings, coordinate conversion, visual pressed style and the actions themselves. Targets can be GUI nodes (`gui.pick_node`), center-anchored rectangles `{x, y, w, h}` or a custom `hit(x, y)` function. List them topmost first; `{ modal = true }` turns a miss into `tap_input.OUTSIDE` so an open modal blocks everything beneath it and can close from an outside tap.
+
+```lua
+local tap_input = require("defold_helper.tap_input")
+
+function init(self)
+  local system = sys.get_sys_info().system_name
+  self.pointer_gate = tap_input.gate({ touch_only = system == "Android" or system == "iPhone OS" })
+  self.tap = tap_input.tap()
+  self.clock = 0
+end
+
+local function targets(self)
+  if self.popup_open then
+    return { { id = "close", node = self.close_node }, { id = "panel", node = self.panel_node } }, { modal = true }
+  end
+  return { { id = "settings", node = self.settings_node }, { id = "start", node = self.start_node } }
+end
+
+local function pointer(self, source, action, x, y)
+  local phase = tap_input.phase(action.pressed, action.released, action.value)
+  if action.pressed and action.released then
+    -- A press and release inside one frame: run both halves of the tap.
+    pointer(self, source, { pressed = true, value = 1 }, x, y)
+  end
+  if not tap_input.accept(self.pointer_gate, source, phase, self.clock) then return true end
+  local list, options = targets(self)
+  local target = tap_input.target_at(list, x, y, options)
+  if phase == tap_input.PRESSED then
+    tap_input.press(self.tap, target, x, y)
+  elseif phase == tap_input.HELD then
+    tap_input.move(self.tap, x, y, target)
+  else
+    local activated = tap_input.release(self.tap, x, y, target)
+    if activated == "settings" then self.popup_open = true
+    elseif activated == "close" or activated == tap_input.OUTSIDE then self.popup_open = false
+    elseif activated == "start" then start_game(self) end
+  end
+  return true
+end
+
+function update(self, dt)
+  self.clock = self.clock + dt
+end
+
+function on_input(self, action_id, action)
+  if action_id == hash("touch") then return pointer(self, tap_input.MOUSE, action, action.x, action.y) end
+  if action_id == hash("multi_touch") and action.touch and action.touch[1] then
+    local touch = action.touch[1]
+    return pointer(self, tap_input.TOUCH, touch, touch.x, touch.y)
+  end
+end
+```
+
+Use `tap_input.reset(gate)` and `tap_input.cancel(tap)` when the game ends a gesture itself, for example after a browser reports a release outside the canvas or when a mode change discards the pressed target. Invalid sources, phases, clocks, coordinates or targets raise errors instead of being ignored.
 
 ## Scroll State Adapter
 

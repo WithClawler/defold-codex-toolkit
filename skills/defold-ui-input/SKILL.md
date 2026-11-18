@@ -27,6 +27,9 @@ Use this skill only for Defold UI and input workflows. If the task is not in a D
 - prefer Defold input bindings over custom HTML shell bridges for click/tap behavior
 - for desktop plus single-touch click/tap, bind `MOUSE_BUTTON_LEFT` / `MOUSE_BUTTON_1`; keep multi-touch on a separate action because sharing the same action overrides single-touch
 - prefer deterministic small changes that close one interaction gap at a time
+- when both mouse and multi-touch bindings exist, route every pointer event through `defold_helper.tap_input.gate` so one physical touch is one gesture; native mobile builds use `touch_only`
+- make UI buttons activate on release over the pressed target with `defold_helper.tap_input.tap`, show the armed target as pressed, and do not act on held frames
+- when a script changes UI state that another component renders later (for example a GUI rebuilt from posted state), do not hit-test new presses against state the player cannot see yet
 
 ## Validation
 
@@ -35,4 +38,5 @@ Use this skill only for Defold UI and input workflows. If the task is not in a D
 - touch and mouse behavior are consistent where requirements overlap
 - desktop mouse, single-touch, and multi-touch paths are tested separately when the target platform supports them
 - `*.input_binding` does not assign multi-touch to the same action as `MOUSE_BUTTON_LEFT` / `MOUSE_BUTTON_1`
+- a single tap opens or closes a popup exactly once on device and in a mobile browser, and a held finger does not trigger the control that appears beneath it
 - task result is validated against the local interaction flow, not assumed behavior
