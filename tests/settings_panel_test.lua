@@ -73,5 +73,45 @@ return function()
   tap(panel.buttons.close.hit)
   check.equal(panel.visible,false)
   check.equal(#actions,0,"an ad-free panel never dispatches provider commands")
+
+  for _, id in ipairs({"en-US"}) do
+    local copy=data.copy[id]
+    copy.privacy_withdraw_ranking,copy.privacy_retry_delete="Withdraw ranking","Retry deletion"
+    copy.leaderboard_leave_title,copy.leaderboard_leave_hint="Leave","Deletes server ranking"
+    copy.leaderboard_leave_accept,copy.leaderboard_leave_cancel="Withdraw","Back"
+  end
+  local payloads={}
+  local privacy_api=require("defold_helper.settings_panel").new({
+    localization=localization,localized_text=text,settings_store=store,
+    audio={play=function() end,stop=function() end},
+    on_action=function(action,payload) actions[#actions+1]=action; payloads[#payloads+1]=payload end,
+  })
+  local privacy_panel=privacy_api.create("en-US")
+  local function privacy_tap(node)
+    local x,y=node.position.x,node.position.y
+    check.equal(privacy_api.handle_input(privacy_panel,"pressed",x,y),true)
+    check.equal(privacy_api.handle_input(privacy_panel,"released",x,y),true)
+  end
+  privacy_api.open(privacy_panel)
+  check.equal(privacy_panel.buttons.ranking.hit.enabled,false,"no ranking row without consent or a server ID")
+  privacy_api.open(privacy_panel,"ranking")
+  check.equal(privacy_panel.mode,"settings","the withdrawal page needs ranking state")
+  privacy_api.on_message(privacy_panel,{leaderboard_joined=true})
+  check.equal(privacy_panel.buttons.ranking.hit.enabled,true,"joined players can withdraw from settings")
+  check.equal(privacy_panel.buttons.ranking.label.text,"Withdraw ranking")
+  privacy_tap(privacy_panel.buttons.ranking.hit)
+  check.equal(privacy_panel.mode,"ranking")
+  check.equal(privacy_panel.title.text,"Leave")
+  check.equal(privacy_panel.buttons.close.label.text,"Back")
+  privacy_tap(privacy_panel.buttons.close.hit)
+  check.equal(privacy_panel.mode,"settings","back returns without withdrawing")
+  check.equal(#payloads,0)
+  privacy_tap(privacy_panel.buttons.ranking.hit)
+  privacy_tap(privacy_panel.buttons.primary.hit)
+  check.equal(actions[#actions],"leaderboard_consent_selected")
+  check.equal(payloads[#payloads].opted_in,false,"withdrawal sends an explicit opt-out")
+  check.equal(privacy_panel.mode,"settings")
+  privacy_api.on_message(privacy_panel,{leaderboard_has_identity=true,deletion_pending=true})
+  check.equal(privacy_panel.buttons.ranking.label.text,"Retry deletion","a pending deletion stays retryable")
   _G.gui,_G.vmath,_G.font=saved.gui,saved.vmath,saved.font
 end

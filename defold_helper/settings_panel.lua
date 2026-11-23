@@ -65,6 +65,7 @@ function factory.new(options)
     button("language", 736)
     button("primary", 610)
     button("policy", 504)
+    button("ranking", 570)
     button("close", 382)
     for index = 1, 5 do button("locale_" .. index, 860 - (index - 1) * 90) end
     button("previous", 382)
@@ -82,6 +83,11 @@ function factory.new(options)
     localized_text.set(panel.entry_label, strings.settings, function(node) localized_text.fit(node, 116, 0.53, 0.36) end)
     if not panel.visible then return end
     local root = panel.mode == "settings"
+    -- Ranking withdrawal stays reachable while consent, a server ID or a
+    -- pending deletion exists; the product state decides, not the game-over UI.
+    local ranking_available = enable_privacy and (state.leaderboard_joined == true
+      or state.leaderboard_has_identity == true or state.deletion_pending == true)
+    if panel.mode == "ranking" and not ranking_available then panel.mode, root = "settings", true end
     local title, body = strings.settings, ""
     local primary, policy, close = strings.privacy_ad_settings, strings.privacy_policy, strings.back
     local primary_enabled, policy_enabled = enable_privacy, enable_privacy
@@ -100,8 +106,11 @@ function factory.new(options)
       title, body = strings.ads_notice_title, strings.ads_notice_body
       primary, close = strings.ads_notice_accept, strings.cancel
       primary_enabled = state.ads_held ~= true
+    elseif panel.mode == "ranking" then
+      title, body = strings.leaderboard_leave_title, strings.leaderboard_leave_hint
+      primary, close = strings.leaderboard_leave_accept, strings.leaderboard_leave_cancel
     end
-    if state.choice_storage_failed and not root and panel.mode ~= "languages" then body = strings.privacy_save_failed end
+    if state.choice_storage_failed and (panel.mode == "ad_settings" or panel.mode == "ads_notice") then body = strings.privacy_save_failed end
     localized_text.set(panel.title, title, function(node) localized_text.fit(node, 550, 0.80, 0.52) end)
     localized_text.set(panel.body, body)
     localized_text.set(panel.error, panel.save_failed and strings.settings_save_failed or "",
@@ -114,15 +123,18 @@ function factory.new(options)
       sound = strings.sound .. "   " .. (panel.settings.sound_enabled and strings.sound_on or strings.sound_off),
       language = strings.language .. "   " .. strings.language_name,
       primary = primary, policy = policy, close = close,
+      ranking = state.deletion_pending and strings.privacy_retry_delete or strings.privacy_withdraw_ranking,
     }
-    local positions = root and (enable_privacy
-      and {sound=842,language=736,primary=610,policy=504,close=382}
+    local positions = root and (ranking_available
+      and {sound=870,language=770,primary=670,ranking=570,policy=470,close=370}
+      or enable_privacy and {sound=842,language=736,primary=610,policy=504,close=382}
       or {sound=790,language=670,close=480}) or {primary=650,policy=540,close=430}
     for id, button in pairs(panel.buttons) do
       local selector = panel.mode == "languages"
       local row = tonumber(id:match("^locale_(%d+)$"))
       local entry = row and localization.locales()[(panel.language_page - 1) * 5 + row]
       local enabled = (id == "sound" or id == "language") and root
+        or id == "ranking" and root and ranking_available
         or id == "primary" and not selector and primary_enabled
         or id == "policy" and not selector and policy_enabled
         or id == "close"
@@ -216,8 +228,13 @@ function factory.new(options)
         panel.resume_reward, panel.visible = false, false
       elseif panel.mode == "ads_notice" then panel.mode = "ad_settings"
       else panel.mode = "settings" end
+    elseif id == "ranking" then
+      panel.mode = "ranking"
     elseif id == "primary" then
       if panel.mode == "settings" then panel.mode = "ad_settings"
+      elseif panel.mode == "ranking" then
+        on_action("leaderboard_consent_selected", { opted_in = false })
+        panel.mode = "settings"
       elseif panel.mode == "ads_notice" then
         on_action("advertising_choice_selected", { enabled = true })
         if panel.resume_reward then

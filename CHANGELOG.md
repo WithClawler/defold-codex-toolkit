@@ -2,6 +2,13 @@
 
 이 프로젝트는 [Semantic Versioning](https://semver.org/)을 따릅니다.
 
+## 0.8.0 - 2026-11-23
+
+### Added
+
+- `settings_panel`이 순위 동의 상태(`leaderboard_joined`, `leaderboard_has_identity`, `deletion_pending`)를 받으면 설정에 순위 동의 철회 행과 확인 화면을 보여준다
+  - 확인하면 `leaderboard_consent_selected` `{ opted_in = false }`를 보내고, 삭제 대기 중에는 재시도 문구를 쓴다.
+
 ## 0.7.0 - 2026-11-18
 
 ### Added
@@ -29,5 +36,6 @@
 - Codex plugin과 Defold library 버전을 `0.6.0`으로 통일
 - single-HTML packer와 runtime utility 사용법을 plugin manifest와 문서에 연결
 
+[0.8.0]: https://github.com/WithClawler/defold-codex-toolkit/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/WithClawler/defold-codex-toolkit/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/doctor-clawler/defold-codex-toolkit/compare/v0.5.0...v0.6.0
