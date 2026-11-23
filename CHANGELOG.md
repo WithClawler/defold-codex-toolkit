@@ -2,6 +2,12 @@
 
 이 프로젝트는 [Semantic Versioning](https://semver.org/)을 따릅니다.
 
+## 0.8.1 - 2026-11-24
+
+### Fixed
+
+- 아랍 문자에서 순위 철회 확인 본문이 제목·버튼에 닿던 배치
+
 ## 0.8.0 - 2026-11-23
 
 ### Added
@@ -36,6 +42,7 @@
 - Codex plugin과 Defold library 버전을 `0.6.0`으로 통일
 - single-HTML packer와 runtime utility 사용법을 plugin manifest와 문서에 연결
 
+[0.8.1]: https://github.com/WithClawler/defold-codex-toolkit/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/WithClawler/defold-codex-toolkit/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/WithClawler/defold-codex-toolkit/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/doctor-clawler/defold-codex-toolkit/compare/v0.5.0...v0.6.0

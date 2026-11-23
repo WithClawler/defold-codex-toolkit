@@ -113,6 +113,8 @@ function factory.new(options)
     if state.choice_storage_failed and (panel.mode == "ad_settings" or panel.mode == "ads_notice") then body = strings.privacy_save_failed end
     localized_text.set(panel.title, title, function(node) localized_text.fit(node, 550, 0.80, 0.52) end)
     localized_text.set(panel.body, body)
+    -- Arabic-script line height makes the five-line withdrawal text the tallest body.
+    gui.set_position(panel.body, vmath.vector3(360, panel.mode == "ranking" and 765 or 810, 0))
     localized_text.set(panel.error, panel.save_failed and strings.settings_save_failed or "",
       function(node) localized_text.fit(node, 550, 0.44, 0.34) end)
     gui.set_enabled(panel.page_label, panel.mode == "languages" and not panel.save_failed)
@@ -128,7 +130,9 @@ function factory.new(options)
     local positions = root and (ranking_available
       and {sound=870,language=770,primary=670,ranking=570,policy=470,close=370}
       or enable_privacy and {sound=842,language=736,primary=610,policy=504,close=382}
-      or {sound=790,language=670,close=480}) or {primary=650,policy=540,close=430}
+      or {sound=790,language=670,close=480})
+      or panel.mode == "ranking" and {primary=560,policy=460,close=360}
+      or {primary=650,policy=540,close=430}
     for id, button in pairs(panel.buttons) do
       local selector = panel.mode == "languages"
       local row = tonumber(id:match("^locale_(%d+)$"))
